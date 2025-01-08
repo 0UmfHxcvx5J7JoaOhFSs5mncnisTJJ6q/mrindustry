@@ -4,19 +4,21 @@
 #'
 #' @md
 #' @param subtype one of
-#'     - `INDSTAT2`: read INDSTAT2 data
+#'     - `INDSTAT2`: read INDSTAT 2 data
+#'     - `INDSTAT3`: read INDSTAT 3 data from [https://stat.unido.org/data/download?dataset=indstat&revision=3]
+#'     - `INDSTAT4`: read INDSTAT 4 data from [https://stat.unido.org/data/download?dataset=indstat&revision=4]
 #' @param x result from `readUNIDO()` as passed to `convertUNIDO()`
 #'
 #' @return A [`magpie`][magclass::magclass] object.
 #'
-#' `readUNIDO` returns raw INDSTAT2 data.  `convertUNIDO` converts to iso3c
+#' `readUNIDO` returns raw INDSTAT data.  `convertUNIDO` converts to iso3c
 #' country codes, selects industry subsectors value added data according to this
 #' table
 #'
 #' | subsector     | ISIC | ctable | utable |
 #' |---------------|------|--------|--------|
 #' | manufacturing | D    | 20     | 17–20  |
-#' | cement        | 20   | 20     | 17–20  |
+#' | cement        | 26   | 20     | 17–20  |
 #' | chemicals     | 24   | 20     | 17–20  |
 #' | steel         | 27   | 20     | 17–20  |
 #'
@@ -67,7 +69,7 @@
 #' @importFrom GDPuc convertGDP
 #' @importFrom magrittr %>%
 #' @importFrom quitte list_to_data_frame madrat_mule
-#' @importFrom readr read_csv
+#' @importFrom readr col_character col_integer col_number col_skip read_csv
 #' @importFrom rlang .data is_empty
 #' @importFrom tibble tibble tribble
 #' @importFrom tidyr unite
@@ -76,13 +78,13 @@
 #' @export
 readUNIDO <- function(subtype = 'INDSTAT2')
 {
+    path <- '~/PIK/swap/inputdata/sources/UNIDO/' # used for debugging
+    path <- './'
+
     # define read functions for all subtypes ----
     switchboard <- list(
         `INDSTAT2` = function()
         {
-            path <- '~/PIK/swap/inputdata/sources/UNIDO/' # used for debugging
-            path <- './'
-
             read_csv(file = file.path(path, 'INDSTAT2',
                                       'INDSTAT2_2017_ISIC_Rev_3.csv'),
                      col_names = c('ctable', 'country', 'year', 'isic',
@@ -95,7 +97,39 @@ readUNIDO <- function(subtype = 'INDSTAT2')
                 filter(!is.na(.data$value)) %>%
                 madrat_mule() %>%
                 return()
+        },
+
+        `INDSTAT3` = function()
+        {
+            read_csv(file = file.path(path, 'INDSTAT3_2025-01-09', 'data.csv'),
+                     col_types = cols(
+                         Year                       = col_integer(),
+                         Country                    = '-',
+                         CountryCode                = col_integer(),
+                         Variable                   = '-',
+                         VariableCode               = col_integer(),
+                         UnconsolidatedVariableCode = col_integer(),
+                         UnconsolidatedVariableName = '-',
+                         ActivityCode               = col_character(),
+                         Activity                   = '-',
+                         ActivityCombination        = col_character(),
+                         Value                      = '-',
+                         UnitType                   = '-',
+                         ValueUSD                   = col_number()
+                     )) %>%
+                filter(20 == .data$VariableCode,
+                       between(.data$UnconsolidatedVariableCode, 17, 20),
+                       .data$ActivityCode %in% c('D', 24, 26, 27)) %>%
+                group_by(.data$Year, .data$CountryCode, .data$VariableCode,
+                         .data$ActivityCode) %>%
+                mutate(count = n()) %>%
+                verify(1 == .data$count) %>%
+                ungroup() %>%
+                select(-'count') %>%
+                madrat_mule() %>%
+                return()
         }
+
     )
 
     # check if the subtype called is available ----
@@ -278,7 +312,53 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2')
               as.magpie(spatial = 1, temporal = 3, data = ncol(.)) %>%
               toolCountryFill(verbosity = 2) %>%
               return()
-        }
+        },
+
+        `INDSTAT3` = function(x)
+        {
+            x %>%
+                madrat_mule() %>%
+                # SUN data synthetic anyhow
+                filter(810 != .data$CountryCode) %>%
+                left_join(
+                    tribble(
+                        ~CountryCode,   ~replacement,
+                        200,            203,            # CSE for CSK
+                        412,            688,            # SRB for Kosovo
+                        530,            531,            # CUW for ANT
+                        890,            688,            # SRB for YUG
+                        891,            688             # SRB for SCG
+                    ),
+
+                    'CountryCode'
+                ) %>%
+                mutate(CountryCode = ifelse(!is.na(.data$replacement),
+                                            .data$replacement,
+                                            .data$CountryCode)) %>%
+                select(-'replacement') %>%
+                ## add country codes ----
+                left_join(
+                    bind_rows(
+                        countrycode::codelist %>%
+                            select('iso3c', 'un') %>%
+                            filter(!is.na(.data$iso3c), !is.na(.data$un)),
+
+                        # country codes missing from package countrycode
+                        tribble(
+                            ~iso3c,   ~un,
+                            'TWN',    158,   # Republic of China
+                            'ETH',    230,   # Ethiopia and Eritrea
+                            'DEU',    278,   # East Germany
+                            'DEU',    280,   # West Germany
+                            'SDN',    736    # Sudan
+                        )
+                    ),
+
+                    c('CountryCode' = 'un')
+                ) %>%
+                assert(not_na, everything())
+
+
     )
 
     # check if the subtype called is available ----
