@@ -7,6 +7,9 @@
 #'     - `INDSTAT2`: read INDSTAT 2 data
 #'     - `INDSTAT3`: read INDSTAT 3 data from [https://stat.unido.org/data/download?dataset=indstat&revision=3]
 #'     - `INDSTAT4`: read INDSTAT 4 data from [https://stat.unido.org/data/download?dataset=indstat&revision=4]
+#' @param exclude Exclude faulty data (`TRUE`, default) or not.  Return a tibble
+#'     of country/subsector/year combinations for `exclude = 'return'`.
+#'     (Work-in-progress)
 #' @param x result from `readUNIDO()` as passed to `convertUNIDO()`
 #'
 #' @return A [`magpie`][magclass::magclass] object.
@@ -64,15 +67,17 @@
 #' @seealso [`readSource()`], [`calcOutput()`]
 #'
 #' @importFrom assertr assert not_na verify
-#' @importFrom dplyr anti_join bind_rows filter group_by inner_join left_join
-#'     mutate select summarise
+#' @importFrom dplyr anti_join between bind_rows filter group_by inner_join
+#'     left_join mutate n select summarise ungroup
 #' @importFrom GDPuc convertGDP
+#' @importFrom madrat toolCountryFill
+#' @importFrom magclass as.magpie
 #' @importFrom magrittr %>%
 #' @importFrom quitte list_to_data_frame madrat_mule
-#' @importFrom readr col_character col_integer col_number col_skip read_csv
-#' @importFrom rlang .data is_empty
+#' @importFrom readr col_character col_integer col_number col_skip cols read_csv
+#' @importFrom rlang !!! .data is_empty syms
 #' @importFrom tibble tibble tribble
-#' @importFrom tidyr unite
+#' @importFrom tidyr expand_grid unite
 
 #' @rdname UNIDO
 #' @export
@@ -143,102 +148,154 @@ readUNIDO <- function(subtype = 'INDSTAT2')
 
 #' @rdname UNIDO
 #' @export
-convertUNIDO <- function(x, subtype = 'INDSTAT2')
+convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
 {
-    # define convert functions for all subtypes ----
-    switchboard <- list(
-        `INDSTAT2` = function(x)
-        {
-            . <- NULL
-            # add iso3c codes ----
+    harmonise_column_names <- function(d, subtype)
+    {
+        d %>%
+            select(
+                switch(subtype,
+                       `INDSTAT2` = c('country', 'year', 'isic', 'ctable',
+                                      'utable', 'lastupdated', 'value'),
+                       `INDSTAT3` = c('country' = 'CountryCode',
+                                      'year'    = 'Year',
+                                      'isic'    = 'ActivityCode',
+                                      'ctable'  = 'VariableCode',
+                                      'utable'  = 'UnconsolidatedVariableCode',
+                                      'value'   = 'ValueUSD')))
+    }
 
-            # FIXME We are substituting some historic country codes by 'default'
-            # codes of current countries.  Generally, they are situated in the
-            # same aggregation region, so this has no impact on the derivation
-            # of regional statistics.  This does not apply to former Yugoslavia
-            # however.  Since the countries in question (currently Slovenia and
-            # Croatia, others might join the EU at a later time and then require
-            # reclassification) are small compared to the respective regions
-            # (Europe and Rest-of-World), the impact should be limited.
-            x <- x %>%
-                madrat_mule() %>%
-                ## fix countries up ----
-                filter(810 != .data$country) %>%   # SUN data synthetic anyhow
-                left_join(
-                    tribble(
-                        ~country,   ~replacement,
-                        200,        203,            # CSE for CSK
-                        530,        531,            # CUW for ANT
-                        890,        688,            # SRB for YUG
-                        891,        688             # SRB for SCG
-                    ),
+    add_iso3c <- function(d, subtype)
+    {
+        # data ----
+        ## countries to remove ----
+        # SUN data synthetic anyhow
+        countries_to_remove <- 810
 
-                    'country'
-                ) %>%
-                mutate(country = ifelse(!is.na(.data$replacement),
-                                        .data$replacement,
-                                        .data$country)) %>%
-                select(-'replacement') %>%
-                ## add country codes ----
-                left_join(
-                    bind_rows(
-                        countrycode::codelist %>%
-                            select('iso3c', 'un') %>%
-                            filter(!is.na(.data$iso3c), !is.na(.data$un)),
+        ## countries to substitute ----
+        # FIXME We are substituting some historic country codes by 'default'
+        # codes of current countries.  Generally, they are situated in the same
+        # aggregation region, so this has no impact on the derivation of
+        # regional statistics.  This does not apply to former Yugoslavia
+        # however.  Since the countries in question (currently Slovenia and
+        # Croatia, others might join the EU at a later time and then require
+        # reclassification) are small compared to the respective regions
+        # (Europe and Rest-of-World), the impact should be limited.
+        countries_to_substitute <- switch(
+            subtype,
 
-                        # country codes missing from package countrycode
-                        tribble(
-                            ~iso3c,   ~un,
-                            'TWN',    158,   # Republic of China
-                            'ETH',    230,   # Ethiopia and Eritrea
-                            'DEU',    278,   # East Germany
-                            'DEU',    280,   # West Germany
-                            'PAN',    590,   # Panama
-                            'SDN',    736    # Sudan
-                        )
-                    ),
+            `INDSTAT2` = tribble(
+                ~country,   ~replacement,
+                200,        203,            # CSE for CSK
+                530,        531,            # CUW for ANT
+                890,        688,            # SRB for YUG
+                891,        688             # SRB for SCG
+            ),
 
-                    c('country' = 'un')
-                ) %>%
-                assert(not_na, everything())
+            `INDSTAT3` = tribble(
+                ~country,   ~replacement,
+                200,        203,            # CSE for CSK
+                412,        688,            # SRB for Kosovo
+                530,        531,            # CUW for ANT
+                890,        688,            # SRB for YUG
+                891,        688             # SRB for SCG
+            ))
 
-            # aggregate subsectors ----
-            ## subsector selection ----
-            subsector_selection <- bind_rows(
-                tibble(subsector = 'manufacturing',
-                       isic      = 'D',
-                       ctable    = 20,
-                       utable    = 17:20),
+        ## additional country codes ----
+        # which are missing from the countrycode package
+        additional_country_codes <- tribble(
+            ~iso3c,   ~un,
+            'TWN',    158,   # Republic of China
+            'ETH',    230,   # Ethiopia and Eritrea
+            'DEU',    278,   # East Germany
+            'DEU',    280,   # West Germany
+            'PAN',    590,   # Panama
+            'SDN',    736    # Sudan
+        )
 
-                tibble(subsector = 'cement',
-                       isic      = '26',
-                       ctable    = 20,
-                       utable    = 17:20),
+        # process ----
+        d %>%
+            # exclude countries
+            filter(!.data$country %in% countries_to_remove) %>%
+            # substitute countries
+            left_join(countries_to_substitute, 'country') %>%
+            mutate(country = ifelse(!is.na(.data$replacement),
+                                    .data$replacement,
+                                    .data$country)) %>%
+            select(-'replacement') %>%
+            # add iso3c codes
+            left_join(
+                bind_rows(
+                    countrycode::codelist %>%
+                        select('iso3c', 'un') %>%
+                        filter(!is.na(.data$iso3c), !is.na(.data$un)),
 
-                tibble(subsector = 'chemicals',
-                       isic      = '24',
-                       ctable    = 20,
-                       utable    = 17:20),
+                    additional_country_codes
+                ),
 
-                tibble(subsector = 'steel',
-                       isic      = '27',
-                       ctable    = 20,
-                       utable    = 17:20)
-            )
+                c('country' = 'un')
+            ) %>%
+            select(-'country') %>%
+            assert(not_na, everything())
 
-            ## subsector exclusion ----
-            subsector_exclusion <- bind_rows(
+    }
+
+    most_recent_value <- function(d)
+    {
+        if ('lastupdated' %in% colnames(d)) {
+            d <- d %>%
+                group_by(!!!syms(setdiff(colnames(d),
+                                         c('lastupdated', 'value')))) %>%
+                filter(max(.data$lastupdated) == .data$lastupdated) %>%
+                ungroup() %>%
+                select(-'lastupdated')
+        }
+        return(d)
+    }
+
+    drop_duplicates <- function(d)
+    {
+        d %>%
+            # filter duplicates, which stem from split countries (e.g. CUW)
+            group_by(!!!syms(setdiff(colnames(d), 'value'))) %>%
+            summarise(value = max(.data$value), .groups = 'drop')
+    }
+
+    select_subsectors <- function(d)
+    {
+        d %>%
+            inner_join(
+                tribble(
+                    ~subsector,        ~isic,
+                    'manufacturing',   'D',
+                    'cement',          '26',
+                    'chemicals',       '24',
+                    'steel',           '27') %>%
+                    expand_grid(ctable = 20, utable = 17:20),
+
+                c('isic', 'ctable', 'utable')
+            ) %>%
+            select(-'isic', -'ctable', -'utable')
+    }
+
+    to_exclude <- function(d, subtype)
+    {
+        switch(
+            subtype,
+            bind_rows(   # default for all subtypes for now
                 list_to_data_frame(
                     list(
                         # unreasonable data
                         IRQ = 1994:1998,
-                        MDV = unique(x$year),
+                        MDV = unique(d$year),
                         BIH = 1990:1991,
                         # unrepresentative data
-                        HKG = unique(x$year),
-                        MAC = unique(x$year),
-                        CHN = min(x$year):1997),
-                    'iso3c', 'year') %>%
+                        HKG = unique(d$year),
+                        MAC = unique(d$year),
+                        CHN = min(d$year):1997
+                    ),
+                    'iso3c', 'year'
+                ) %>%
                     mutate(subsector = 'manufacturing'),
 
                 # Data with an obvious mismatch between steel production and
@@ -257,8 +314,10 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2')
                          MAR = 1989:2004,
                          MKD = 1996,
                          PAK = 1981:1982,
-                         TUN = 2003:2006),
-                    'iso3c', 'year') %>%
+                         TUN = 2003:2006
+                    ),
+                    'iso3c', 'year'
+                ) %>%
                     mutate(subsector = 'steel'),
 
                 list_to_data_frame(
@@ -269,105 +328,69 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2')
                          HKG = 1973:1979,   # no data for CHN prior to 1980
                          IRQ = 1992:1997,   # cement VA 100 times higher than
                                             # before and after
-                         RUS = 1970:1990    # exclude data from Soviet period
+                         RUS = 1970:1990    # exclude data from Soviet period,
                                             # which biases projections up
                     ),
-                    'iso3c', 'year') %>%
+                    'iso3c', 'year'
+                ) %>%
                     mutate(subsector = 'cement'),
 
                 list_to_data_frame(
                     list(CIV = 1989,
                          NER = 1999:2002,
                          HKG = c(1973:1979, 2008:2015),
-                         MAC = c(1978:1979)),
-                    'iso3c', 'year') %>%
+                         MAC = c(1978:1979)
+                    ),
+                    'iso3c', 'year'
+                ) %>%
                     mutate(subsector = 'chemicals')
             )
+        )
+    }
 
-            ### aggregation ----
-            x <- x %>%
-                inner_join(
-                    subsector_selection,
+    exclude_subsectors <- function(d, subtype, exclude = TRUE)
+    {
 
-                    c('isic', 'ctable', 'utable')
-                ) %>%
+        if (isTRUE(exclude)) {
+            d <- d %>%
                 anti_join(
-                    subsector_exclusion,
+                    to_exclude(d, subtype),
 
                     c('iso3c', 'year', 'subsector')
-                ) %>%
-                # GDP conversion is only valid for monetary units
-                verify('$' == .data$unit) %>%
-                GDPuc::toolConvertGDP(unit_in  = 'constant 2005 US$MER',
-                           unit_out = mrdrivers::toolGetUnitDollar(),
-                           replace_NAs = 'with_USA') %>%
-                group_by(.data$iso3c, .data$subsector, .data$year) %>%
-                filter(max(.data$lastupdated) == .data$lastupdated) %>%
-                # for split countries, which lead to duplicates (e.g. CUW), use
-                # the maximum
-                summarise(value = max(.data$value), .groups = 'drop')
+                )
+        }
+        return(d)
+    }
 
-            # return ----
-            x %>%
-              as.magpie(spatial = 1, temporal = 3, data = ncol(.)) %>%
-              toolCountryFill(verbosity = 2) %>%
-              return()
-        },
+    convert_dollarbucks <- function(d, subtype)
+    {
+        d %>%
+            GDPuc::toolConvertGDP(
+                unit_in = switch(subtype,
+                                 `INDSTAT2` = 'constant 2005 US$MER',
+                                 `INDSTAT3` = 'constant 2005 US$MER', # ???
+                                 stop('unknown subtype')),
+                unit_out = mrdrivers::toolGetUnitDollar(),
+                replace_NAs = 'with_USA')
+    }
 
-        `INDSTAT3` = function(x)
-        {
-            x %>%
-                madrat_mule() %>%
-                # SUN data synthetic anyhow
-                filter(810 != .data$CountryCode) %>%
-                left_join(
-                    tribble(
-                        ~CountryCode,   ~replacement,
-                        200,            203,            # CSE for CSK
-                        412,            688,            # SRB for Kosovo
-                        530,            531,            # CUW for ANT
-                        890,            688,            # SRB for YUG
-                        891,            688             # SRB for SCG
-                    ),
+    if ('return' == exclude)
+        return(to_exclude(x, subtype))
 
-                    'CountryCode'
-                ) %>%
-                mutate(CountryCode = ifelse(!is.na(.data$replacement),
-                                            .data$replacement,
-                                            .data$CountryCode)) %>%
-                select(-'replacement') %>%
-                ## add country codes ----
-                left_join(
-                    bind_rows(
-                        countrycode::codelist %>%
-                            select('iso3c', 'un') %>%
-                            filter(!is.na(.data$iso3c), !is.na(.data$un)),
-
-                        # country codes missing from package countrycode
-                        tribble(
-                            ~iso3c,   ~un,
-                            'TWN',    158,   # Republic of China
-                            'ETH',    230,   # Ethiopia and Eritrea
-                            'DEU',    278,   # East Germany
-                            'DEU',    280,   # West Germany
-                            'SDN',    736    # Sudan
-                        )
-                    ),
-
-                    c('CountryCode' = 'un')
-                ) %>%
-                assert(not_na, everything())
-
-
-    )
-
-    # check if the subtype called is available ----
-    if (is_empty(intersect(subtype, names(switchboard))))
-        stop(paste('Invalid subtype -- supported subtypes are:',
-                   names(switchboard)))
-
-    # ---- load data and do whatever ----
-    return(switchboard[[subtype]](x))
+    # process data ----
+    x %>%
+        madrat_mule() %>%
+        harmonise_column_names(subtype) %>%
+        select_subsectors() %>%
+        add_iso3c(subtype) %>%
+        exclude_subsectors(subtype, isTRUE(exclude)) %>%
+        convert_dollarbucks(subtype) %>%
+        most_recent_value() %>%
+        drop_duplicates() %>%
+        select('iso3c', 'year', 'subsector', 'value') %>%
+        as.magpie(spatial = 1, temporal = 2, tidy = TRUE) %>%
+        toolCountryFill(verbosity = 2) %>%
+        return()
 }
 
 #' @rdname UNIDO
