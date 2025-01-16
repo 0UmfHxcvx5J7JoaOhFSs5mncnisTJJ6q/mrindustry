@@ -74,7 +74,7 @@
 #' @importFrom magclass as.magpie
 #' @importFrom magrittr %>%
 #' @importFrom quitte list_to_data_frame madrat_mule
-#' @importFrom readr col_character col_integer col_number col_skip cols read_csv
+#' @importFrom readr col_character col_double col_integer col_skip cols read_csv
 #' @importFrom rlang !!! .data is_empty syms
 #' @importFrom tibble tibble tribble
 #' @importFrom tidyr expand_grid unite
@@ -83,67 +83,67 @@
 #' @export
 readUNIDO <- function(subtype = 'INDSTAT2')
 {
-    path <- '~/PIK/swap/inputdata/sources/UNIDO/' # used for debugging
-    path <- './'
+    base_path <- '~/PIK/swap/inputdata/sources/UNIDO/' # used for debugging
+    base_path <- './'
 
-    # define read functions for all subtypes ----
-    switchboard <- list(
-        `INDSTAT2` = function()
-        {
-            read_csv(file = file.path(path, 'INDSTAT2',
-                                      'INDSTAT2_2017_ISIC_Rev_3.csv'),
-                     col_names = c('ctable', 'country', 'year', 'isic',
-                                   'isiccomb', 'value', 'utable', 'source',
-                                   'lastupdated', 'unit'),
-                     col_types = 'iiiccdiddc',
-                     na = '...') %>%
-                select('ctable', 'country', 'year', 'isic', 'isiccomb',
-                       'utable', 'source', 'lastupdated', 'unit', 'value') %>%
-                filter(!is.na(.data$value)) %>%
-                madrat_mule() %>%
-                return()
-        },
+    path <- switch(
+        subtype,
+        `INDSTAT2` = c(base_path, 'INDSTAT2', 'INDSTAT2_2017_ISIC_Rev_3.csv'),
+        `INDSTAT3` = c(base_path, 'INDSTAT3_2025-01-09', 'data.csv'),
+        `INDSTAT4` = c(base_path, 'INDSTAT4_2025-01-09', 'data.csv'),
+        stop('subtype not implemented')) %>%
+        paste(collapse = .Platform$file.sep)
 
-        `INDSTAT3` = function()
-        {
-            read_csv(file = file.path(path, 'INDSTAT3_2025-01-09', 'data.csv'),
-                     col_types = cols(
-                         Year                       = col_integer(),
-                         Country                    = '-',
-                         CountryCode                = col_integer(),
-                         Variable                   = '-',
-                         VariableCode               = col_integer(),
-                         UnconsolidatedVariableCode = col_integer(),
-                         UnconsolidatedVariableName = '-',
-                         ActivityCode               = col_character(),
-                         Activity                   = '-',
-                         ActivityCombination        = col_character(),
-                         Value                      = '-',
-                         UnitType                   = '-',
-                         ValueUSD                   = col_number()
-                     )) %>%
-                filter(20 == .data$VariableCode,
-                       between(.data$UnconsolidatedVariableCode, 17, 20),
-                       .data$ActivityCode %in% c('D', 24, 26, 27)) %>%
-                group_by(.data$Year, .data$CountryCode, .data$VariableCode,
-                         .data$ActivityCode) %>%
-                mutate(count = n()) %>%
-                verify(1 == .data$count) %>%
-                ungroup() %>%
-                select(-'count') %>%
-                madrat_mule() %>%
-                return()
-        }
+    col_types <- switch(
+        subtype,
+        `INDSTAT2` = cols(ctable      = col_integer(),
+                          country     = col_integer(),
+                          year        = col_integer(),
+                          isic        = col_character(),
+                          isiccomb    = '-',
+                          value       = col_double(),
+                          utable      = col_integer(),
+                          source      = '-',
+                          lastupdated = col_double(),
+                          unit        = '-'),
+        `INDSTAT3` = cols(Year                       = col_integer(),
+                          Country                    = '-',
+                          CountryCode                = col_integer(),
+                          Variable                   = '-',
+                          VariableCode               = col_integer(),
+                          UnconsolidatedVariableCode = col_integer(),
+                          UnconsolidatedVariableName = '-',
+                          ActivityCode               = col_character(),
+                          Activity                   = '-',
+                          ActivityCombination        = '-',
+                          Value                      = '-',
+                          UnitType                   = '-',
+                          ValueUSD                   = col_double()),
+        `INDSTAT4` = cols(Year                       = col_integer(),
+                          Country                    = '-',
+                          CountryCode                = col_integer(),
+                          Variable                   = '-',
+                          VariableCode               = col_integer(),
+                          UnconsolidatedVariableCode = col_integer(),
+                          UnconsolidatedVariableName = '-',
+                          ActivityCode               = col_character(),
+                          Activity                   = '-',
+                          ActivityCombination        = '-',
+                          Value                      = '-',
+                          UnitType                   = '-',
+                          ValueUSD                   = col_double()),
+        stop('subtype not implemented'))
 
-    )
+    col_names <- switch(subtype,
+                        `INDSTAT2` = names(col_types$cols),
+                        `INDSTAT3` = TRUE,
+                        `INDSTAT4` = TRUE,
+                        stop('subtype not implemented'))
 
-    # check if the subtype called is available ----
-    if (is_empty(intersect(subtype, names(switchboard))))
-        stop(paste('Invalid subtype -- supported subtypes are:',
-                   names(switchboard)))
-
-    # ---- load data and do whatever ----
-    return(switchboard[[subtype]]())
+    read_csv(file = path, col_names = col_names, col_types = col_types,
+             na = '...') %>%
+        madrat_mule() %>%
+        return()
 }
 
 #' @rdname UNIDO
