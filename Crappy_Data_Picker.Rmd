@@ -23,20 +23,21 @@ stopifnot(as.numeric_version('0.10.0.9001') == mrindustry_version)
 library(madrat, quietly = TRUE)
 library(mrindustry)
 
-following <- function(...) 
-{
-    list(...) |>
-        unlist() |>
-        lapply(madrat::getDependencies, direction = 'out', self = TRUE) |>
-        lapply(getElement, name = 'func') |>
-        unlist(use.names = FALSE) |>
-        unique()
-}
-
 setConfig(forcecache = TRUE,
                   outputfolder = './',
                   .verbose = FALSE)
-setConfig(ignorecache = suppressWarnings(following('readUNIDO')))
+
+# following <- function(...) 
+# {
+#     list(...) |>
+#         unlist() |>
+#         lapply(madrat::getDependencies, direction = 'out', self = TRUE) |>
+#         lapply(getElement, name = 'func') |>
+#         unlist(use.names = FALSE) |>
+#         unique()
+# }
+# 
+# setConfig(ignorecache = suppressWarnings(following('readUNIDO')))
 ```
 
 ```{r get data}
@@ -59,35 +60,34 @@ regionmapping <- toolGetMapping('regionmapping_21_EU11-columnname.csv',
     as_tibble() %>% 
     select('iso3c' = 2, 'region' = 3)
 
+filter_region <- function(d, r)
+{
+    semi_join(d, regionmapping %>% filter(r == region), 'iso3c')
+}
+
 for (s in unique(exclusions$subsector)) {
-    cat('\n# ', s, '\n\n')
-    for (r in sort(unique(regionmapping$region)) {
-        these_exclusions <- exclusions %>% 
-            semi_join(
-                regionmapping %>% 
-                filter(r == region),
-          
-                'iso3c'
-            ) %>% 
-            filter(s == subsector)
-        
-        if (0 == nrow(these_exclusions))
-            next
-        
-        cat('\n## ', r, '\n\n')
+    cat('\n\n# ', s, '\n')
+    for (r in sort(unique(regionmapping$region))) {
+        cat('\n\n## ', r, '\n')
       
         p <- ggplot() +
             geom_ribbon(
-                data = these_exclusions %>% 
-                    arrange(iso3c, subsector, year) %>% 
-                    group_by(iso3c, subsector) %>% 
-                    mutate(group_id = cumsum(c(1, diff(year) != 1))) %>% 
-                    group_by(group_id, .add = TRUE) %>% 
-                    mutate(year = case_when(
-                        min(year) == year ~ year - 0.3,
-                        max(year) == year ~ year + 0.3,
-                        TRUE              ~ year)) %>% 
-                    ungroup(),
+                data = exclusions %>% 
+                    filter_region(r) %>% 
+                    filter(s == subsector) %>%
+                    arrange(iso3c, subsector, year) %>%
+                    group_by(iso3c, subsector) %>%
+                    mutate(group_id = cumsum(c(1, diff(year) != 1))) %>%
+                    group_by(group_id, .add = TRUE) %>%
+                    nest() %>% 
+                    mutate(data = map(data, \(df) {
+                        df %>% 
+                            mutate(year = case_when(
+                                min(year) == year ~ year - 0.3,
+                                max(year) == year ~ year + 0.3,
+                                TRUE              ~ year))
+                        })) %>%
+                    unnest('data'),
                 mapping = aes(x = year, ymin = 0, ymax = Inf, group = group_id,
                               fill = 'INDSTAT2 excluded'),
                 alpha = 0.3) +
@@ -105,10 +105,19 @@ for (s in unique(exclusions$subsector)) {
             
                     INDSTAT2 %>% 
                         as_tibble() %>% 
-                        mutate(version = 'INDSTAT2')),
-                mapping = aes(x = year, y = value, colour = version)) +
+                        mutate(version = 'INDSTAT2')) %>% 
+                  semi_join(regionmapping %>% filter(r == region), 'iso3c') %>% 
+                  filter(s == subsector,
+                         !is.na(value)),
+                mapping = aes(x = year, y = value, colour = version,
+                              shape = version),
+                size = 3) +
             scale_colour_discrete(name = NULL) +
-            facet_wrap(vars(iso3c, subsector), scales = 'free') +
+            scale_shape_manual(values = c('INDSTAT2' = 'o',
+                                          'INDSTAT3' = 'x',
+                                          'INDSTAT4' = '+'),
+                                          name = NULL) +
+            facet_wrap(vars(iso3c), scales = 'free') +
             labs(x = NULL, y = NULL) +
             theme_minimal()
         

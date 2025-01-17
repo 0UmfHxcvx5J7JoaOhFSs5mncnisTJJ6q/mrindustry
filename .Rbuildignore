@@ -10,4 +10,4 @@
 ^.lintr$
 ^tests/.lintr$
 ^\.vscode$
-Crappy_Data_Picker.Rmd
+Crappy_Data_Picker.*
