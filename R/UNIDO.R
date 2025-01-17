@@ -162,7 +162,14 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
                                       'isic'    = 'ActivityCode',
                                       'ctable'  = 'VariableCode',
                                       'utable'  = 'UnconsolidatedVariableCode',
-                                      'value'   = 'ValueUSD')))
+                                      'value'   = 'ValueUSD'),
+                       `INDSTAT4` = c('country' = 'CountryCode',
+                                      'year'    = 'Year',
+                                      'isic'    = 'ActivityCode',
+                                      'ctable'  = 'VariableCode',
+                                      'utable'  = 'UnconsolidatedVariableCode',
+                                      'value'   = 'ValueUSD'),
+                       stop('unknown subtype')))
     }
 
     add_iso3c <- function(d, subtype)
