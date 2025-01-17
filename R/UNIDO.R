@@ -77,7 +77,7 @@
 #' @importFrom readr col_character col_double col_integer col_skip cols read_csv
 #' @importFrom rlang !!! .data is_empty syms
 #' @importFrom tibble tibble tribble
-#' @importFrom tidyr expand_grid unite
+#' @importFrom tidyr drop_na expand_grid unite
 
 #' @rdname UNIDO
 #' @export
@@ -206,7 +206,18 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
                 530,        531,            # CUW for ANT
                 890,        688,            # SRB for YUG
                 891,        688             # SRB for SCG
-            ))
+            ),
+
+            `INDSTAT4` = tribble(
+                ~country,   ~replacement,
+                200,        203,            # CSE for CSK
+                412,        688,            # SRB for Kosovo
+                530,        531,            # CUW for ANT
+                890,        688,            # SRB for YUG
+                891,        688             # SRB for SCG
+            ),
+
+            stop('unknown subtype'))
 
         ## additional country codes ----
         # which are missing from the countrycode package
@@ -376,18 +387,20 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
                 unit_in = switch(subtype,
                                  `INDSTAT2` = 'constant 2005 US$MER',
                                  `INDSTAT3` = 'constant 2005 US$MER', # ???
+                                 `INDSTAT4` = 'constant 2005 US$MER', # ???
                                  stop('unknown subtype')),
                 unit_out = mrdrivers::toolGetUnitDollar(),
                 replace_NAs = 'with_USA')
     }
 
-    if ('return' == exclude)
-        return(to_exclude(x, subtype))
-
     # process data ----
+    if ('return' == exclude)
+        return(to_exclude(madrat_mule(x), subtype))
+
     x %>%
         madrat_mule() %>%
         harmonise_column_names(subtype) %>%
+        drop_na('value') %>%
         select_subsectors() %>%
         add_iso3c(subtype) %>%
         exclude_subsectors(subtype, isTRUE(exclude)) %>%
