@@ -13,7 +13,6 @@
 #' `COKEOVGS`, `COALTAR`, `NONCRUDE`), that are inputs into industry subsectors.
 #' Used internally in mrremind::calcIO() for subtype `output_Industry_subsectors`.
 #'
-#' @md
 #' @param data MAgPIE object containing the IEA Energy Balances data
 #'
 #' @param ieamatch mapping of IEA product/flow combinations to REMIND

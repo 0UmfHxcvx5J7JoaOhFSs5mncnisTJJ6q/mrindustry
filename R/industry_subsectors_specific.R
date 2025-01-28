@@ -3,7 +3,6 @@
 #' Change factors of specific FE and material demand for the
 #' `industry/subsector` realisation of REMIND.
 #'
-#' @md
 #' @param subtype One of
 #'   - `FE` for specific final energy demand change factors
 #'   - `material_alpha` for alpha factors and convergence time of specific

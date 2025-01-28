@@ -6,7 +6,6 @@
 #' through personal communication (e-mail to Michaja Pehl).  Units are tonnes
 #' per year.
 #'
-#' @md
 #' @return A [`magpie`][magclass::magclass] object.
 #'
 #' @author Michaja Pehl

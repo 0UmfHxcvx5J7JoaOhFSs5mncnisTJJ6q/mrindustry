@@ -1,6 +1,5 @@
 #' Calculate Clinker-to-Cement Ratio
 #'
-#' @md
 #' @return A list with a [`magpie`][magclass::magclass] object `x`, `weight`,
 #'   `unit`, and `description`.
 #'

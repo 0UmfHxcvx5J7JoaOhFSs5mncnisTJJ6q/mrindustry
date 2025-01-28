@@ -3,7 +3,6 @@
 #' Return `readindustry_subsectors_specific('industry_specific_FE_limits')` in a
 #' format usable as a REMIND input.
 #'
-#' @md
 #' @return A [`magpie`][magclass::magclass] object.
 #'
 #' @author Michaja Pehl

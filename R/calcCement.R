@@ -4,7 +4,6 @@
 #' [`readUSGS(cement)`][readUSGS] into a single data set, using USGS data from
 #' 2005 on.
 #'
-#' @md
 #' @return A list with a [`magpie`][magclass::magclass] object `x` with
 #'   country-level cement production in tonnes, `weight`, `unit`, `description`,
 #'   and `min` fields.

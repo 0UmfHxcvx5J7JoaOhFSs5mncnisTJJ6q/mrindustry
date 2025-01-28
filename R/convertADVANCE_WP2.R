@@ -1,6 +1,5 @@
 #' Convert ADVANCE WP2 Data
 #'
-#' @md
 #' @param x A [`magpie`][magclass::magclass] object returned by
 #'   [`readADVANCE_WP2()`].
 #' @param subtype One of

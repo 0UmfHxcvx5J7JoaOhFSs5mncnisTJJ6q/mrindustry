@@ -1,6 +1,5 @@
 #' Read ADVANCE WP2 Data
 #'
-#' @md
 #' @param subtype One of
 #'   - `clinker-to-cement-ratio` for the clinker-to-cement ratios from figure 21
 #'     of Edelenbosch, O. _Enhancing the representation of energy demand

@@ -5,7 +5,6 @@
 #' https://www.zotero.org/groups/52011/rd3/items/X8XCUJ5U).  Shares are weighted
 #' by GDP for aggregation and converge towards global values by 2100.
 #'
-#' @md
 #' @return A list with a [`magpie`][magclass::magclass] object `x`, `weight`,
 #'   `unit`, `description`, `min`, and `max`.
 #'

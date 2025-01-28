@@ -2,7 +2,6 @@
 #'
 #' Read data from Müller et al. 2013 (http://dx.doi.org/10.1021/es402618m).
 #' 
-#' @md
 #' @param subtype One of:
 #'   - `countries`: read table mapping country names use by Müller et al. 2013
 #'     to ISO 3166-1 alpha-3 codes.

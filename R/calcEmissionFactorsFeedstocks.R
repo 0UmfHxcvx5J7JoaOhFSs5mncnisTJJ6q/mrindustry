@@ -2,7 +2,6 @@
 #' using emissions from UNFCCC and energy demands from IEA Energy Balances
 #'
 #'
-#' @md
 #' @return A list with a [`magpie`][magclass::magclass] object `x`, `weight`,
 #'   `unit`, `description`.
 #'

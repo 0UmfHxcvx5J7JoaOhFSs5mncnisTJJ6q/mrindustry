@@ -1,6 +1,5 @@
 #' Function for calculating industry activity trajectories.
 #'
-#' @md
 #' @param subtype One of
 #'   - `production` Returns trajectories of primary and secondary steel
 #'     production.
@@ -42,7 +41,7 @@
 #' @importFrom tidyr expand_grid pivot_longer pivot_wider replace_na
 #' @importFrom zoo na.approx rollmean
 #' @importFrom utils head
-#' @importFrom dplyr bind_cols  
+#' @importFrom dplyr bind_cols
 #' @importFrom magclass setNames
 
 #' @export
@@ -52,7 +51,7 @@ calcSteel_Projections <- function(subtype = 'production',
                                   save.plots = NULL,
                                   China_Production = NULL) {
 
-  
+
   if (!is.null(save.plots)) {
     if (!all(isTRUE(file.info(save.plots)$isdir),
              448L == bitwAnd(file.info(save.plots)$mode, 448L))) {
@@ -1250,7 +1249,7 @@ calcSteel_Projections <- function(subtype = 'production',
       )
     )
   }
-  
+
   if (!is.null(save.plots)) {
 
     p <- ggplot() +
@@ -1291,7 +1290,7 @@ calcSteel_Projections <- function(subtype = 'production',
     write_rds(x = p,
               file = file.path(save.plots,
                                '6_Steel_production.rds'))
-  } 
+  }
 
   # return statement ----
   return(list(x = x,
