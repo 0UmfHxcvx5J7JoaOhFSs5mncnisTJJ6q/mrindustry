@@ -24,10 +24,7 @@ calcindustry_max_secondary_steel_share <- function(scenarios = NULL,
   . <- NULL
 
   return(list(
-    x = readSource(type = 'ExpertGuess',
-                   subtype = 'industry_max_secondary_steel_share',
-                   convert = FALSE) %>%
-      madrat_mule() %>%
+    x = toolIndustryExpertGuess('industry_max_secondary_steel_share') %>%
       tool_expand_tibble(region = regions, scenario = scenarios) %>%
       pivot_longer(
         !all_of(names(which('character' == unlist(lapply(., typeof)))))) %>%

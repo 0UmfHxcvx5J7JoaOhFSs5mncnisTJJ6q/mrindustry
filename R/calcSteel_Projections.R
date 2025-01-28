@@ -729,18 +729,10 @@ calcSteel_Projections <- function(subtype = 'production',
     assert(not_na, everything())
 
   ## calculate secondary steel max share ----
-  secondary.steel.max.switches <- calcOutput(
-    type = 'industry_max_secondary_steel_share',
-    scenarios = unique(population$scenario),
-    regions = unique(region_mapping$region),
-    aggregate = FALSE) %>%
-    as.data.frame() %>%
-    as_tibble() %>%
-    select(scenario = 'Data1', region = 'Data2', name = 'Data3',
-           value = 'Value') %>%
-    mutate(name = paste0('secondary.steel.max.share.', .data$name)) %>%
-    pivot_wider() %>%
-    character.data.frame()
+  secondary.steel.max.switches <- toolIndustryExpertGuess(
+    'industry_max_secondary_steel_share') %>%
+    tool_expand_tibble(region = unique(region_mapping$region),
+                       scenario = unique(population$scenario))
 
   tmp <- full_join(
     steel_historic_prod %>%

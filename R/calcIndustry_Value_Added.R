@@ -39,7 +39,7 @@
 #' @importFrom tidyr expand_grid pivot_longer pivot_wider replace_na
 #' @importFrom zoo na.approx rollmean
 #' @importFrom utils head
-#' @importFrom dplyr bind_cols  
+#' @importFrom dplyr bind_cols
 #' @importFrom magclass setNames
 
 #' @export
@@ -548,10 +548,7 @@ calcIndustry_Value_Added <- function(subtype = 'physical',
     complete(nesting(!!!syms(c('region', 'a', 'b'))),
              year = 2000:2100) %>%
     left_join(
-      readSource(type = 'ExpertGuess',
-                 subtype = 'cement_production_convergence_parameters',
-                 convert = FALSE) %>%
-        madrat_mule(),
+      toolIndustryExpertGuess('cement_production_convergence_parameters'),
 
       'region'
     ) %>%

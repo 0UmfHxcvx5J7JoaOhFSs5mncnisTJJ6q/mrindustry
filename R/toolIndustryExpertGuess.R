@@ -42,7 +42,8 @@ toolIndustryExpertGuess <- function(subtype)
         stop('Unknown subtype ', subtype)
     )
 
-    x <- read_delim(file = path, delim = ',', comment = '#', trim_ws = TRUE) %>%
+    x <- read_delim(file = path, delim = ',', comment = '#', trim_ws = TRUE,
+                    show_col_types = FALSE) %>%
         as_tibble()   # remove readr attributes
 
     regions <- toolGetMapping(
