@@ -765,8 +765,7 @@ calcSteel_Projections <- function(subtype = 'production',
         distinct(.data$scenario, .data$region, .data$iso3c) %>%
         full_join(
           secondary.steel.max.switches %>%
-            select('scenario', 'region', year = 'secondary.steel.max.share.by',
-                   share = 'secondary.steel.max.share.target') %>%
+            select('scenario', 'region', year = 'by', share = 'target') %>%
             mutate(year = as.integer(.data$year),
                    share = as.numeric(.data$share)),
 
