@@ -734,19 +734,19 @@ calcSteel_Projections <- function(subtype = 'production',
     tool_expand_tibble(region = unique(region_mapping$region),
                        scenario = unique(population$scenario))
 
-  tmp <- full_join(
-    steel_historic_prod %>%
-      filter('Total' != .data$iso3c) %>%
-      mutate(match = TRUE),
+    tmp <- full_join(
+      steel_historic_prod %>%
+        filter('Total' != .data$iso3c) %>%
+        mutate(match = TRUE),
 
-    secondary.steel.max.switches %>%
-      select('scenario', 'secondary.steel.max.share.from') %>%
-      mutate(match = TRUE,
-             secondary.steel.max.share.from =
-               as.integer(.data$secondary.steel.max.share.from)),
+      secondary.steel.max.switches %>%
+        select('scenario', 'secondary.steel.max.share.from' = 'from') %>%
+        mutate(match = TRUE,
+               secondary.steel.max.share.from =
+                 as.integer(.data$secondary.steel.max.share.from)),
 
-    'match'
-  ) %>%
+      'match'
+    ) %>%
     select(-'match') %>%
     group_by(!!!syms(c('scenario', 'region', 'iso3c', 'variable'))) %>%
     filter(.data$year <= .data$secondary.steel.max.share.from) %>%
