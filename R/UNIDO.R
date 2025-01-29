@@ -32,19 +32,19 @@
 #' |---------------|-------|------------------|
 #' | manufacturing | BIH   | 1990–91          |
 #' | manufacturing | CHN   | 1963–97          |
+#' | manufacturing | EGY   | 2018-19          |
 #' | manufacturing | HKG   | 1963–2015        |
-#' | manufacturing | IRQ   | 1994–98          |
 #' | manufacturing | MAC   | 1963–2015        |
 #' | manufacturing | MDV   | 1963–2015        |
 #' | cement        | BDI   | 1980–2010        |
 #' | cement        | CIV   | 1990–93          |
 #' | cement        | HKG   | 1973–79          |
-#' | cement        | IRQ   | 1992–97          |
 #' | cement        | NAM   | 2007–10          |
 #' | cement        | RUS   | 1970–90          |
 #' | chemicals     | CIV   | 1989             |
 #' | chemicals     | HKG   | 1973–79, 2008–15 |
 #' | chemicals     | MAC   | 1978–79          |
+#' | chemicals     | MMR   | 2021             |
 #' | chemicals     | NER   | 1999–2002        |
 #' | steel         | BGD   | 2011             |
 #' | steel         | CHE   | 1995–96          |
@@ -57,6 +57,10 @@
 #' | steel         | MKD   | 1996             |
 #' | steel         | PAK   | 1981–82          |
 #' | steel         | TUN   | 2003–06          |
+#' | all           | IRN   | 2022             |
+#' | all           | IRQ   | 1992-2002        |
+#' | all           | MWI   | 2021             |
+#' | all           | TZA   | 2022             |
 #'
 #' `calcUNIDO()` calculates `otherInd` subsector values as the difference
 #' between `manufacturing` and `cement`, `chemicals`, and `steel` values and is
@@ -304,9 +308,13 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
                 list_to_data_frame(
                     list(
                         # unreasonable data
-                        IRQ = 1994:1998,
+                        EGY = 2018:2019,
+                        IRN = 2022,
+                        IRQ = 1992:2002,
                         MDV = unique(d$year),
+                        MWI = 2021,
                         BIH = 1990:1991,
+                        TZA = 2020,
                         # unrepresentative data
                         HKG = unique(d$year),
                         MAC = unique(d$year),
@@ -328,11 +336,15 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
                          HKG = 1973:1979,
                          HRV = 2012,
                          IRL = 1980,
+                         IRN = 2022,
+                         IRQ = 1992:2002,
                          LKA = 2006,
                          MAR = 1989:2004,
                          MKD = 1996,
+                         MWI = 2021,
                          PAK = 1981:1982,
-                         TUN = 2003:2006
+                         TUN = 2003:2006,
+                         TZA = 2020
                     ),
                     'iso3c', 'year'
                 ) %>%
@@ -344,10 +356,13 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
                                             # before and after
                          NAM = 2007:2010,   # zero cement production
                          HKG = 1973:1979,   # no data for CHN prior to 1980
-                         IRQ = 1992:1997,   # cement VA 100 times higher than
+                         IRN = 2022,
+                         IRQ = 1992:2002,   # cement VA 100 times higher than
                                             # before and after
-                         RUS = 1970:1990    # exclude data from Soviet period,
+                         MWI = 2021,
+                         RUS = 1970:1990,   # exclude data from Soviet period,
                                             # which biases projections up
+                         TZA = 2020
                     ),
                     'iso3c', 'year'
                 ) %>%
@@ -355,9 +370,14 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
 
                 list_to_data_frame(
                     list(CIV = 1989,
+                         IRN = 2022,
+                         IRQ = 1992:2002,
+                         MMR = 2021,
+                         MWI = 2021,
                          NER = 1999:2002,
                          HKG = c(1973:1979, 2008:2015),
-                         MAC = c(1978:1979)
+                         MAC = c(1978:1979),
+                         TZA = 2020
                     ),
                     'iso3c', 'year'
                 ) %>%
