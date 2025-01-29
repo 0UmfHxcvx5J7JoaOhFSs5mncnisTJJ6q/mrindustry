@@ -42,7 +42,7 @@
 #' @importFrom tidyr expand_grid pivot_longer pivot_wider replace_na
 #' @importFrom zoo na.approx rollmean
 #' @importFrom utils head
-#' @importFrom dplyr bind_cols  
+#' @importFrom dplyr bind_cols
 #' @importFrom magclass setNames
 
 #' @export
@@ -1250,7 +1250,7 @@ calcSteel_Projections <- function(subtype = 'production',
       )
     )
   }
-  
+
   if (!is.null(save.plots)) {
 
     p <- ggplot() +
@@ -1291,7 +1291,7 @@ calcSteel_Projections <- function(subtype = 'production',
     write_rds(x = p,
               file = file.path(save.plots,
                                '6_Steel_production.rds'))
-  } 
+  }
 
   # return statement ----
   return(list(x = x,

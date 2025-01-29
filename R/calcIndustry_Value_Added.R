@@ -40,7 +40,7 @@
 #' @importFrom tidyr expand_grid pivot_longer pivot_wider replace_na
 #' @importFrom zoo na.approx rollmean
 #' @importFrom utils head
-#' @importFrom dplyr bind_cols  
+#' @importFrom dplyr bind_cols
 #' @importFrom magclass setNames
 
 #' @export
