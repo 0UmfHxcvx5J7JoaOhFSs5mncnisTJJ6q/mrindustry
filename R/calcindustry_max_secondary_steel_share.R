@@ -28,7 +28,7 @@ calcindustry_max_secondary_steel_share <- function(scenarios = NULL,
                    subtype = 'industry_max_secondary_steel_share',
                    convert = FALSE) %>%
       madrat_mule() %>%
-      tool_expand_tibble(scenarios, regions) %>%
+      tool_expand_tibble(region = regions, scenario = scenarios) %>%
       pivot_longer(
         !all_of(names(which('character' == unlist(lapply(., typeof)))))) %>%
       as.magpie(spatial = 0, temporal = 0, data = ncol(.)),
