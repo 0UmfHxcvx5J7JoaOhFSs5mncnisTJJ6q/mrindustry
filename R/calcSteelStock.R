@@ -1,6 +1,5 @@
 #' Calculate Steel Stock from Mueller steel stock per capita and WDI population
 #'
-#' @md
 #' @return A [`magpie`][magclass::magclass] object.
 #'
 #' @author Falk Benke

@@ -1,6 +1,5 @@
 #' Read ODYM_RECC data from the SHAPE Project
 #'
-#' @md
 #' @param subtype One of
 #'   - `'REMIND_industry_trends'`: Trends in per-capita production of industry
 #'     subsectors `cement`, `chemicals`, `steel_primary`, `steel_secondary`,

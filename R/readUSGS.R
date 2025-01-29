@@ -1,6 +1,5 @@
 #' Read U.S. Geological Survey data
 #'
-#' @md
 #' @param subtype One of
 #'   - 'cement': read cement production data from
 #'     [U.S. Geological Survey Minerals Yearbook](https://www.usgs.gov/centers/national-minerals-information-center/cement-statistics-and-information)

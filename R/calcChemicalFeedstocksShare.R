@@ -3,7 +3,6 @@
 #' Calculates the share of `CHEMICAL` in `CHEMICAL = NECHEM` and converges it
 #' towards the maximum value of either OECD or non-OECD countries by 2050.
 #'
-#' @md
 #' @return A list with a [`magpie`][magclass::magclass] object `x`, `weight`,
 #'   `unit`, `description`, `min`, and `max`.
 #'

@@ -1,6 +1,5 @@
 #' Convert Mueller data
 #'
-#' @md
 #' @param x A [`magpie`][magclass::magclass] object returned from
 #'          [`readMueller()`].
 #'

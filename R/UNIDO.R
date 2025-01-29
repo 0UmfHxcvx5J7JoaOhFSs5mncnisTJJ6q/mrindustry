@@ -2,7 +2,6 @@
 #'
 #' Read and convert data from United Nations Industrial Organisation.
 #'
-#' @md
 #' @param subtype one of
 #'     - `INDSTAT2`: read INDSTAT2 data
 #' @param x result from `readUNIDO()` as passed to `convertUNIDO()`

@@ -1,6 +1,5 @@
 #' Function for calculating industry activity trajectories.
 #'
-#' @md
 #' @param subtype One of
 #'   - `production` Returns trajectories of primary and secondary steel
 #'     production.

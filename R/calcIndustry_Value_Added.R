@@ -1,6 +1,5 @@
 #' Function for calculating industry activity trajectories.
 #'
-#' @md
 #' @param subtype One of
 #'   - `physical` Returns physical production trajectories for cement.
 #'   - `economic` Returns value added trajectories for all subsectors.
