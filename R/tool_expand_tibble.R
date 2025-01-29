@@ -1,104 +1,86 @@
-#' Expand tibble across scenarios and regions with default values
+#' Expand tibble across columns with default values
 #'
 #' The data.frame `d` is expanded in such a manner that all rows with `NA` in
-#' either the `scenario` or `region` columns are extended to repeat for all
-#' scenarios and regions listed in `scenarios` and `regions`.  Rows with
-#' specified scenarios and/or regions will overwrite extended ones.  Regions are
-#' expanded before scenarios.
+#' the columns named in the `...` arguments are extended to repeat for all
+#' elements listed in the `...` arguments.  Columns with specified data will
+#' overwrite extended ones.  Columns are extended in the order of the `...`
+#' arguments.
 #'
-#' @param d A data.frame with columns `scenario` and `region`.
-#' @param scenarios A character vector of scenario names.
-#' @param regions A character vector of region names.
-#' @param structure.columns A character vector of column names to be carried
-#'   along.  Ignored if not a column in `d`.
+#' @param d A [`data.frame`].
 #'
-#' @return A `tibble`.
+#' @param ... Named arguments with character vectors to expand columns with.
+#'     Argument names must match column names.  Use `NULL` arguments for columns
+#'     that will be preserved with their current set of values.
 #'
-#' @importFrom dplyr anti_join bind_rows filter select
-#' @importFrom rlang syms
-#' @importFrom tidyr complete nesting
-#' @importFrom tidyselect all_of
+#' @return A [`tibble`][tibble::tibble].
 #'
 #' @examples
 #' \dontrun{
-#' tribble(
-#'   ~scenario,   ~region,   ~value,
-#'   NA,          NA,        0,
-#'   NA,          'CHA',     1,
-#'   'SSP1',      NA,        2,
-#'   'SSP2',     'DEU',     3) %>%
-#'   tool_expand_tibble(scenarios = c('SSP1', 'SSP2', 'SSP5'),
-#'                      regions = c('CHA', 'DEU', 'USA')) %>%
-#'   pivot_wider(names_from = 'region')
+#' d <- tribble(
+#'     ~scenario,   ~region,   ~value,
+#'     NA,          NA,        0,
+#'     NA,          'AAA',     1,
+#'     'foo',       NA,        2,
+#'     'foo',       'BBB',     3) %>%
+#'     print()
 #'
-#' tribble(
-#'   ~scenario,   ~region,   ~name,   ~value,
-#'   NA,          NA,        'A',     0,
-#'   NA,          'CHA',     'B',     1,
-#'   'SSP1',      NA,        'A',     2,
-#'   'SSP2',      'DEU',     'B',     3) %>%
-#'   tool_expand_tibble(scenarios = c('SSP1', 'SSP2', 'SSP5'),
-#'                      regions = c('CHA', 'DEU', 'USA'),
-#'                      structure.columns = 'name')
+#' scenarios <- c('foo', 'bar', 'buzz')
+#' regions   <- c('AAA', 'BBB', 'ZZZ')
+#'
+#' # expand scenarios, then regions
+#' tool_expand_tibble(d, scenario = scenarios, region = regions) %>%
+#'     arrange(value, scenario, region)
+#'
+#' # expand regions, then scenarios
+#' tool_expand_tibble(d, region = regions, scenario = scenarios) %>%
+#'     arrange(value, scenario, region)
 #' }
-
+#'
+#' @importFrom dplyr anti_join arrange bind_rows distinct filter relocate select
+#' @importFrom magrittr %>%
+#' @importFrom rlang !! !!! sym syms :=
+#' @importFrom tibble tribble
+#' @importFrom tidyr expand_grid
+#'
 #' @export
-tool_expand_tibble <- function(d, scenarios, regions,
-                               structure.columns = NULL) {
-  . <- NULL
+tool_expand_tibble <- function(d, ...)
+{
+    .dots <- list(...)
+    # arguments can also be passed as a single list
+    if (1 == length(.dots) && is.list(.dots[[1]]))
+        .dots <- .dots[[1]]
 
-  # entries with both scenarios and regions defined
-  d.scenario.region <- d %>%
-    filter(!is.na(.data$scenario), .data$scenario %in% scenarios,
-           !is.na(.data$region), .data$region %in% regions)
+    if (length(names(.dots)) != length(.dots)) {
+        stop('All `...` arguments must be named.')
+    }
 
-  # entries with only scenarios defined
-  d.scenario <- d %>%
-    filter(!is.na(.data$scenario), .data$scenario %in% scenarios,
-           is.na(.data$region)) %>%
-    complete(nesting(!!!syms(setdiff(colnames(.), 'region'))),
-             region = regions) %>%
-    filter(!is.na(.data$region))
+    for (i in seq_along(.dots)) {
+        column <- names(.dots)[[i]]
+        value  <- .dots[[i]]
 
-  # entries with only regions defined
-  d.region <- d %>%
-    filter(is.na(.data$scenario),
-           !is.na(.data$region), .data$region %in% regions) %>%
-    complete(nesting(!!!syms(setdiff(colnames(.), 'scenario'))),
-             scenario = scenarios) %>%
-    filter(!is.na(.data$scenario))
+        if (is.null(value))
+            next
 
-  # entries with neither scenario nor regions defined
-  d.global <- d %>%
-    filter(is.na(.data$scenario), is.na(.data$region)) %>%
-    complete(nesting(!!!syms(setdiff(colnames(.), c('scenario', 'region')))),
-             scenario = scenarios,
-             region = regions) %>%
-    filter(!is.na(.data$scenario), !is.na(.data$region))
+        d <- bind_rows(
+            d %>%
+                filter(!is.na(!!sym(column))),
 
-  # combine all entries
-  d.global %>%
-    # scenarios overwrite global data
-    anti_join(
-      d.scenario,
+            d %>%
+                filter(is.na(!!sym(column))) %>%
+                select(-all_of(column)) %>%
+                distinct() %>%
+                expand_grid(!!sym(column) := value) %>%
+                relocate(all_of(colnames(d))) %>%
+                anti_join(
+                    d %>%
+                        filter(!is.na(!!sym(column))),
 
-      c('scenario', 'region', intersect(colnames(.), structure.columns))
-    ) %>%
-    bind_rows(d.scenario) %>%
-    # regions overwrite global and scenario data
-    anti_join(
-      d.region,
+                    intersect(names(.dots), colnames(d))
+                )
+        ) %>%
+            filter(!!sym(column) %in% value) %>%
+            arrange(!!!syms(names(d)))
+    }
 
-      c('scenario', 'region', intersect(colnames(.), structure.columns))
-    ) %>%
-    bind_rows(d.region) %>%
-    # specific data overwrites everything
-    anti_join(
-      d.scenario.region,
-
-      c('scenario', 'region', intersect(colnames(.), structure.columns))
-    ) %>%
-    bind_rows(d.scenario.region) %>%
-    select(all_of(colnames(d))) %>%
-    return()
+    return(d)
 }

@@ -176,8 +176,8 @@ calcindustry_subsectors_specific <- function(subtype = NULL, scenarios = NULL,
 
   return(list(
     x = x %>%
-      tool_expand_tibble(scenarios, regions,
-			 structure.columns = 'subsector') %>%
+      tool_expand_tibble(region = regions, scenario = scenarios,
+                         subsector = NULL) %>%
       pivot_longer(
         !all_of(names(which('character' == unlist(lapply(., typeof)))))
       ) %>%
