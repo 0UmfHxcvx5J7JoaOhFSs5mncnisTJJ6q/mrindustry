@@ -40,7 +40,7 @@
 #' @importFrom tidyr expand_grid pivot_longer pivot_wider replace_na
 #' @importFrom zoo na.approx rollmean
 #' @importFrom utils head
-#' @importFrom dplyr bind_cols  
+#' @importFrom dplyr bind_cols
 #' @importFrom magclass setNames
 
 #' @export
@@ -71,7 +71,7 @@ calcIndustry_Value_Added <- function(subtype = 'physical',
     select(region = 'RegionCode', iso3c = 'CountryCode')
 
   ## UNIDO INSTATA2 data ----
-  INDSTAT <- readSource('UNIDO', 'INDSTAT2') %>%
+  INDSTAT <- readSource('UNIDO') %>%
     as_tibble() %>%
     filter(!is.na(.data$value)) %>%
     left_join(region_mapping, 'iso3c')

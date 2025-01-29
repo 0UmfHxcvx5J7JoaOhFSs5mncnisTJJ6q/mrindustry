@@ -85,7 +85,7 @@
 
 #' @rdname UNIDO
 #' @export
-readUNIDO <- function(subtype = 'INDSTAT2')
+readUNIDO <- function(subtype = 'INDSTAT3')
 {
     base_path <- '~/PIK/swap/inputdata/sources/UNIDO/' # used for debugging
     base_path <- './'
@@ -152,7 +152,7 @@ readUNIDO <- function(subtype = 'INDSTAT2')
 
 #' @rdname UNIDO
 #' @export
-convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
+convertUNIDO <- function(x, subtype = 'INDSTAT3', exclude = TRUE)
 {
     harmonise_column_names <- function(d, subtype)
     {
@@ -435,7 +435,7 @@ convertUNIDO <- function(x, subtype = 'INDSTAT2', exclude = TRUE)
 
 #' @rdname UNIDO
 #' @export
-calcUNIDO <- function(subtype = 'INDSTAT2')
+calcUNIDO <- function(subtype = 'INDSTAT3')
 {
     # define calc functions for all subtypes ----
     switchboard <- list(
