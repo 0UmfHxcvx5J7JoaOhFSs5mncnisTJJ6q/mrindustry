@@ -14,6 +14,7 @@
 #'   interpolate_missing_periods interpolate_missing_periods_ madrat_mule
 #'   magclass_to_tibble overwrite seq_range
 #' @importFrom rlang .data sym syms !!! !!
+#' @importFrom stats nls nls.control
 #' @importFrom tibble tribble
 #' @importFrom tidyr complete extract nesting
 #'   pivot_longer pivot_wider replace_na separate unite

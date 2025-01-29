@@ -153,7 +153,9 @@ calcIndustry_Value_Added <- function(subtype = 'physical',
             filter(.data$region == r,
                    'Total' == .data$iso3c),
           start = list(a = 1000, b = -2000),
-          trace = FALSE) %>%
+          trace = FALSE,
+          control = nls.control(maxiter = 1000,
+                                minFactor = 2 ^ -12)) %>%
         broom::tidy() %>%
         select('term', 'estimate') %>%
         pivot_wider(names_from = 'term', values_from = 'estimate') %>%
