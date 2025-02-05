@@ -48,7 +48,9 @@ calcIndustry_Value_Added <- function(subtype = 'physical',
                                      match.steel.historic.values = TRUE,
                                      match.steel.estimates = 'none',
                                      save.plots = NULL,
-                                     China_Production = NULL) {
+                                     China_Production = NULL,
+                                     INDSTAT = 'INDSTAT2',
+                                     escape_hatch = FALSE) {
   if (!is.null(save.plots)) {
     if (!all(isTRUE(file.info(save.plots)$isdir),
              448L == bitwAnd(file.info(save.plots)$mode, 448L))) {
@@ -71,7 +73,7 @@ calcIndustry_Value_Added <- function(subtype = 'physical',
     select(region = 'RegionCode', iso3c = 'CountryCode')
 
   ## UNIDO INSTATA2 data ----
-  INDSTAT <- readSource('UNIDO') %>%
+  INDSTAT <- readSource('UNIDO', subtype = INDSTAT) %>%
     as_tibble() %>%
     filter(!is.na(.data$value)) %>%
     left_join(region_mapping, 'iso3c')
@@ -955,6 +957,11 @@ calcIndustry_Value_Added <- function(subtype = 'physical',
   ) %>%
     mutate(GDPpC = .data$GDP / .data$population)
 
+  if ('chemicals_data' == escape_hatch) {
+    return(list(x = regression_data_chemicals,
+                class = 'data.frame'))
+  }
+
   ## compute regression parameters ----
   regression_parameters_chemicals <- tibble()
   for (r in sort(unique(regression_data_chemicals$region))) {
@@ -972,6 +979,11 @@ calcIndustry_Value_Added <- function(subtype = 'physical',
         pivot_wider(names_from = 'term', values_from = 'estimate') %>%
         mutate(region = r)
     )
+  }
+
+  if ('chemicals_parameters' == escape_hatch) {
+    return(list(x = regression_parameters_chemicals,
+                class = 'data.frame'))
   }
 
   ## replace outliers with global parameters
