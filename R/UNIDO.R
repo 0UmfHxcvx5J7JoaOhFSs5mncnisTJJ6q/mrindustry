@@ -314,7 +314,7 @@ convertUNIDO <- function(x, subtype = 'INDSTAT3', exclude = TRUE)
                         MDV = unique(d$year),
                         MWI = 2021,
                         BIH = 1990:1991,
-                        TZA = 2020,
+                        TZA = 2022,
                         # unrepresentative data
                         HKG = unique(d$year),
                         MAC = unique(d$year),
@@ -344,7 +344,7 @@ convertUNIDO <- function(x, subtype = 'INDSTAT3', exclude = TRUE)
                          MWI = 2021,
                          PAK = 1981:1982,
                          TUN = 2003:2006,
-                         TZA = 2020
+                         TZA = 2022
                     ),
                     'iso3c', 'year'
                 ) %>%
@@ -362,7 +362,7 @@ convertUNIDO <- function(x, subtype = 'INDSTAT3', exclude = TRUE)
                          MWI = 2021,
                          RUS = 1970:1990,   # exclude data from Soviet period,
                                             # which biases projections up
-                         TZA = 2020
+                         TZA = 2022
                     ),
                     'iso3c', 'year'
                 ) %>%
@@ -377,7 +377,7 @@ convertUNIDO <- function(x, subtype = 'INDSTAT3', exclude = TRUE)
                          NER = 1999:2002,
                          HKG = c(1973:1979, 2008:2015),
                          MAC = c(1978:1979),
-                         TZA = 2020
+                         TZA = 2022
                     ),
                     'iso3c', 'year'
                 ) %>%
