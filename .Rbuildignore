@@ -11,3 +11,4 @@
 ^tests/.lintr$
 ^\.vscode$
 Crappy_Data_Picker.*
+INDSTAT3_Validation.*
