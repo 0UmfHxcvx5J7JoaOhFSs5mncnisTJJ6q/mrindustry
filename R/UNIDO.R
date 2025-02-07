@@ -337,7 +337,7 @@ convertUNIDO <- function(x, subtype = 'INDSTAT3', exclude = TRUE)
                          HRV = 2012,
                          IRL = 1980,
                          IRN = 2022,
-                         IRQ = 1992:2002,
+                         IRQ = c(1992, 1993, 2001, 2002, 2011, 2014),
                          LKA = 2006,
                          MAR = 1989:2004,
                          MKD = 1996,
@@ -371,7 +371,7 @@ convertUNIDO <- function(x, subtype = 'INDSTAT3', exclude = TRUE)
                 list_to_data_frame(
                     list(CIV = 1989,
                          IRN = 2022,
-                         IRQ = 1992:2002,
+                         IRQ = 1994:1997,
                          MMR = 2021,
                          MWI = 2021,
                          NER = 1999:2002,
