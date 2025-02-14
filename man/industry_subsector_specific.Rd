@@ -19,7 +19,7 @@ calcindustry_subsectors_specific(
 \itemize{
 \item \code{FE} for specific final energy demand change factors
 \item \code{material_alpha} for alpha factors and convergence time of specific
-material demand decreases relative to the \code{SSP2EU} scenario
+material demand decreases relative to the \code{SSP2} scenario
 \item \code{material_relative} for scaling factors of specific material demand
 relative to baseline scenarios
 \item \code{material_relative_change} for scaling factors of specific material
@@ -59,7 +59,7 @@ So
 \code{regi1} combination
 }
 
-Replacements occure in this fixed order (\code{NA}/\code{NA}, \code{scenario}/\code{NA},
+Replacements occur in this fixed order (\code{NA}/\code{NA}, \code{scenario}/\code{NA},
 \code{NA}/\code{region}, \code{scenario}/\code{region}).
 
 Lastly, output is filtered for \code{scenarios} and \code{regions}.

@@ -44,7 +44,7 @@ Calculate Limits on Industry CCS Capacities
 \details{
 The limits on industry CCS capacities are calculated from data of the
 \href{zotero://select/items/3_E5GNNPZ8}{Global Status of CCS 2023} report (through
-\code{\link[=readGlobalCCSinstitute]{readGlobalCCSinstitute()}}.  CCS projects are
+mrremind::readGlobalCCSinstitute().  CCS projects are
 \itemize{
 \item filtered for valid (i.e. not "Under Evaluation") data for "Operation date"
 and "CO~2~ capture capacity"
@@ -72,7 +72,7 @@ The resulting project capacities constitute the limits on industry subsector
 CCS capacity for 2025.  The limit on CCS capacities for regions (or countries
 if \code{region_mapping} is \code{NULL}) is set to a value of total 2025 subsector CCS
 capacity, times the regions share in subsector activity (e.g. cement
-production) of the SSP2EU scenario
+production) of the SSP2 scenario
 \itemize{
 \item in 2030 if the region as some CCS capacity in 2025 in a different industry
 subsector, or

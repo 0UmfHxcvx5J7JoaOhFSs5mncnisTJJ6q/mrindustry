@@ -14,7 +14,7 @@ tool_expand_tibble(d, scenarios, regions, structure.columns = NULL)
 \item{regions}{A character vector of region names.}
 
 \item{structure.columns}{A character vector of column names to be carried
-along.}
+along.  Ignored if not a column in `d`.}
 }
 \value{
 A `tibble`.
@@ -33,8 +33,8 @@ tribble(
   NA,          NA,        0,
   NA,          'CHA',     1,
   'SSP1',      NA,        2,
-  'SSP2EU',    'DEU',     3) \%>\%
-  tool_expand_tibble(scenarios = c('SSP1', 'SSP2EU', 'SSP5'),
+  'SSP2',     'DEU',     3) \%>\%
+  tool_expand_tibble(scenarios = c('SSP1', 'SSP2', 'SSP5'),
                      regions = c('CHA', 'DEU', 'USA')) \%>\%
   pivot_wider(names_from = 'region')
 
@@ -43,8 +43,8 @@ tribble(
   NA,          NA,        'A',     0,
   NA,          'CHA',     'B',     1,
   'SSP1',      NA,        'A',     2,
-  'SSP2EU',    'DEU',     'B',     3) \%>\%
-  tool_expand_tibble(scenarios = c('SSP1', 'SSP2EU', 'SSP5'),
+  'SSP2',      'DEU',     'B',     3) \%>\%
+  tool_expand_tibble(scenarios = c('SSP1', 'SSP2', 'SSP5'),
                      regions = c('CHA', 'DEU', 'USA'),
                      structure.columns = 'name')
 }
