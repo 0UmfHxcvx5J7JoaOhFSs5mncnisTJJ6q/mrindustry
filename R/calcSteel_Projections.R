@@ -276,7 +276,7 @@ calcSteel_Projections <- function(subtype = 'production',
         filter(.estimate == .data$estimate,
                between(.data$steel.stock.per.capita, 0, Asym)) %>%
         mutate(x = .data$steel.stock.per.capita  / Asym) %>%
-        select(.data$x, y = .data$GDPpC)
+        select('x', y = 'GDPpC')
     ) %>%
       getElement('coefficients') %>%
       setNames(NULL)
