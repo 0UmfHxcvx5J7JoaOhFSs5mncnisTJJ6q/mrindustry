@@ -1,6 +1,17 @@
 context('tool_expand_tibble')
 
 test_that(
+  'ignore NULL arguments not columns in d',
+  {
+    expect_no_error(
+      tool_expand_tibble(
+        tibble(foo = c('foo', NA),
+               value = 1:2),
+        foo = c('foo', 'bar', 'buzz'),
+        bar = NULL))
+  })
+
+test_that(
   'industry_max_secondary_steel_share',
   {
     { object = tool_expand_tibble(

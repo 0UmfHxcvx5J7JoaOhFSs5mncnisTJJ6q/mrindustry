@@ -54,9 +54,10 @@ tool_expand_tibble <- function(d, ...)
 
     stopifnot('All `...` arguments must be named.' = all('' != names(dots)))
 
-    if (length(unknowns <- setdiff(names(dots), colnames(d)))) {
+    unknowns <- setdiff(names(Filter(Negate(is.null), dots)), colnames(d))
+    if (length(unknowns)) {
         unknowns <- paste0('`', unknowns, '`')
-        stop(pluralize('All `...` arguments must be columns of `d`. ',
+        stop(pluralize('All non-NULL `...` arguments must be columns of `d`. ',
                        '{unknowns} {?is/are} not.'))
     }
 
@@ -75,7 +76,7 @@ tool_expand_tibble <- function(d, ...)
                 filter(is.na(!!sym(column))) %>%
                 select(-all_of(column)) %>%
                 distinct() %>%
-                expand_grid(!!sym(column) := value) %>%
+                expand_grid(!!sym(column) := .env$value) %>%
                 relocate(all_of(colnames(d))) %>%
                 anti_join(
                     d %>%
@@ -84,7 +85,7 @@ tool_expand_tibble <- function(d, ...)
                     intersect(names(dots), colnames(d))
                 )
         ) %>%
-            filter(!!sym(column) %in% value) %>%
+            filter(!!sym(column) %in% .env$value) %>%
             arrange(!!!syms(names(d)))
     }
 
