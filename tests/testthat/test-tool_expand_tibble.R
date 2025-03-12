@@ -1,21 +1,20 @@
 context('tool_expand_tibble')
 
 test_that(
-  'tool_expand_tibble industry_max_secondary_steel_share',
+  'industry_max_secondary_steel_share',
   {
-    expect_equal(
-      object = tool_expand_tibble(
+    { object = tool_expand_tibble(
         d = tribble(
           ~scenario,   ~region,   ~from,   ~by,    ~target,
           NA,          NA,        2015,    2050,   0.90,
           'SSP2EU',    'DEU',     2015,    2100,   0.81),
-        scenarios = c('SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5',
-                      'SSP2IndiaHigh', 'SSP2IndiaMedium'),
-        regions = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
-                    'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
-                    'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA')),
-
-      expected = tribble(
+        scenario = c('SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5',
+                     'SSP2IndiaHigh', 'SSP2IndiaMedium'),
+        region = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
+                   'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
+                   'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'))
+    }
+    { expected = tribble(
         ~scenario,           ~region,   ~from,   ~by,    ~target,
         'SSP1',              'CAZ',     2015,    2050,   0.9,
         'SSP1',              'CHA',     2015,    2050,   0.9,
@@ -163,27 +162,27 @@ test_that(
         'SSP5',              'REF',     2015,    2050,   0.9,
         'SSP5',              'SSA',     2015,    2050,   0.9,
         'SSP5',              'UKI',     2015,    2050,   0.9,
-        'SSP5',              'USA',     2015,    2050,   0.9))
+        'SSP5',              'USA',     2015,    2050,   0.9)
+    }
+    expect_equal(object, expected)
   })
 
 test_that(
-  'tool_expand_tibble industry_subsectors_specific fixing_year',
-  {
-    expect_equal(
-      object = tool_expand_tibble(
+  'industry_subsectors_specific fixing_year',
+  { { object = tool_expand_tibble(
         d = tribble(
           ~scenario,   ~region,         ~fixing_year,
           NA,          NA_character_,   2025,
           'gdp_SSP1',  NA,              2028),
-        scenarios = c('SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn',
-                      'SSP2_highDemDEU', 'SSP2IndiaHigh', 'SSP2IndiaMedium',
-                      'SDP', 'SDP_EI', 'SDP_RC', 'SDP_MC'),
-        regions = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
-                    'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
-                    'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
-        structure.columns = 'subsector'),
-
-      expected = tribble(
+        scenario = c('SSP1', 'SSP2', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn',
+                     'SSP2_highDemDEU', 'SSP2IndiaHigh', 'SSP2IndiaMedium',
+                     'SDP', 'SDP_EI', 'SDP_RC', 'SDP_MC'),
+        region = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
+                   'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
+                   'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA')) %>%
+        arrange(!!!syms(colnames(.)))
+    }
+    { expected = tribble(
         ~scenario,           ~region,   ~fixing_year,
         'SDP',               'CAZ',     2025,
         'SDP',               'CHA',     2025,
@@ -457,15 +456,16 @@ test_that(
         'SSP5',              'REF',     2025,
         'SSP5',              'SSA',     2025,
         'SSP5',              'UKI',     2025,
-        'SSP5',              'USA',     2025)
-    )
+        'SSP5',              'USA',     2025) %>%
+        arrange(!!!syms(colnames(.)))
+    }
+    expect_equal(object, expected)
   })
 
 test_that(
-  'tool_expand_tibble industry_subsectors_specific material_alpha',
+  'industry_subsectors_specific material_alpha',
   {
-    expect_equal(
-      object = tool_expand_tibble(
+    { object = tool_expand_tibble(
         d = tribble(
           ~scenario,          ~region,         ~subsector,          ~alpha,   ~convergence.time,
           'gdp_SSP1',         NA_character_,   'cement',             0.030,   50,
@@ -510,16 +510,17 @@ test_that(
           'gdp_SSP2_lowEn',   NA_character_,   'otherInd',           0.020,   50,
           'gdp_SSP2_lowEn',   'SSA',           'otherInd',          -0.010,   50,
           'gdp_SSP2_lowEn',   'MEA',           'otherInd',           0.000,   50),
-        scenarios = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
-                      'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
-                      'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
-                      'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn'),
-        regions = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
-                    'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
-                    'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
-        structure.columns = 'subsector'),
-
-      expected = tribble(
+        scenario = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
+                     'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
+                     'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
+                     'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn'),
+        region = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
+                   'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
+                   'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
+        subsector = NULL) %>%
+      arrange(.data$scenario, .data$region, .data$subsector)
+    }
+    { expected = tribble(
         ~scenario,    ~region,   ~subsector,          ~alpha,   ~convergence.time,
         'gdp_SSP1',   'CAZ',     'cement',             0.030,   50,
         'gdp_SSP1',   'DEU',     'cement',             0.030,   50,
@@ -625,14 +626,16 @@ test_that(
         'gdp_SSP1',   'LAM',     'steel_secondary',    0.030,   50,
         'gdp_SSP1',   'IND',     'steel_secondary',    0.030,   50,
         'gdp_SSP1',   'SSA',     'otherInd',          -0.010,   50,
-        'gdp_SSP1',   'MEA',     'otherInd',           0.000,   50))
+        'gdp_SSP1',   'MEA',     'otherInd',           0.000,   50) %>%
+      arrange(.data$scenario, .data$region, .data$subsector)
+    }
+    expect_equal(object, expected)
   })
 
 test_that(
-  'tool_expand_tibble industry_subsectors_specific material_relative',
+  'industry_subsectors_specific material_relative',
   {
-    expect_equal(
-      object = tool_expand_tibble(
+    { object = tool_expand_tibble(
         d = tribble(
           ~scenario,          ~region,         ~subsector,          ~alpha,   ~convergence.time,
           'gdp_SSP1',         NA_character_,   'cement',             0.030,   50,
@@ -677,17 +680,18 @@ test_that(
           'gdp_SSP2_lowEn',   NA_character_,   'otherInd',           0.020,   50,
           'gdp_SSP2_lowEn',   'SSA',           'otherInd',          -0.010,   50,
           'gdp_SSP2_lowEn',   'MEA',           'otherInd',           0.000,   50),
-        scenarios = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
-                      'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
-                      'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
-                      'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn',
-                      'SSP2_highDemDEU'),
-        regions = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
-                    'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
-                    'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
-        structure.columns = 'subsector'),
-
-      expected = tribble(
+        scenario = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
+                     'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
+                     'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
+                     'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn',
+                     'SSP2_highDemDEU'),
+        region = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
+                   'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
+                   'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
+        subsector = NULL) %>%
+      arrange(.data$scenario, .data$region, .data$subsector)
+    }
+    { expected = tribble(
         ~scenario,    ~region,   ~subsector,          ~alpha,   ~convergence.time,
         'gdp_SSP1',   'CAZ',     'cement',             0.030,   50,
         'gdp_SSP1',   'DEU',     'cement',             0.030,   50,
@@ -793,14 +797,16 @@ test_that(
         'gdp_SSP1',   'LAM',     'steel_secondary',    0.030,   50,
         'gdp_SSP1',   'IND',     'steel_secondary',    0.030,   50,
         'gdp_SSP1',   'SSA',     'otherInd',          -0.010,   50,
-        'gdp_SSP1',   'MEA',     'otherInd',           0.000,   50))
+        'gdp_SSP1',   'MEA',     'otherInd',           0.000,   50) %>%
+      arrange(.data$scenario, .data$region, .data$subsector)
+    }
+    expect_equal(object, expected)
   })
 
 test_that(
-  'tool_expand_tibble industry_subsectors_specific material_relative_change',
+  'industry_subsectors_specific material_relative_change',
   {
-    expect_equal(
-      object = tool_expand_tibble(
+    { object = tool_expand_tibble(
         d = tribble(
           ~scenario,    ~base.scenario,   ~region,         ~subsector,          ~factor,
           'gdp_SSP5',   'gdp_SSP2EU',     NA_character_,   'cement',            0.8,
@@ -808,16 +814,18 @@ test_that(
           'gdp_SSP5',   'gdp_SSP2EU',     NA_character_,   'steel_primary',     0.8,
           'gdp_SSP5',   'gdp_SSP2EU',     NA_character_,   'steel_secondary',   0.8,
           'gdp_SSP5',   'gdp_SSP2EU',     NA_character_,   'otherInd',          0.8),
-        scenarios = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
-                      'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
-                      'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
-                      'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn'),
-        regions = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
-                    'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
-                    'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
-        structure.columns = 'subsector'),
-
-      expected = tribble(
+        scenario = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
+                     'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
+                     'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
+                     'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn'),
+        region = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
+                   'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
+                   'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
+        subsector = NULL) %>%
+      arrange(.data$scenario, .data$base.scenario, .data$region,
+              .data$subsector)
+    }
+    { expected = tribble(
         ~scenario,    ~base.scenario,   ~region,   ~subsector,          ~factor,
         'gdp_SSP5',   'gdp_SSP2EU',     'CAZ',     'cement',            0.8,
         'gdp_SSP5',   'gdp_SSP2EU',     'CHA',     'cement',            0.8,
@@ -923,14 +931,17 @@ test_that(
         'gdp_SSP5',   'gdp_SSP2EU',     'REF',     'steel_secondary',   0.8,
         'gdp_SSP5',   'gdp_SSP2EU',     'SSA',     'steel_secondary',   0.8,
         'gdp_SSP5',   'gdp_SSP2EU',     'UKI',     'steel_secondary',   0.8,
-        'gdp_SSP5',   'gdp_SSP2EU',     'USA',     'steel_secondary',   0.8))
+        'gdp_SSP5',   'gdp_SSP2EU',     'USA',     'steel_secondary',   0.8) %>%
+      arrange(.data$scenario, .data$base.scenario, .data$region,
+              .data$subsector)
+    }
+    expect_equal(object, expected)
   })
 
 test_that(
-  'tool_expand_tibble industry_subsectors_specific FE',
+  'industry_subsectors_specific FE',
   {
-    expect_equal(
-      object = tool_expand_tibble(
+    { object = tool_expand_tibble(
         d = tribble(
           ~scenario,                      ~region,         ~subsector,          ~alpha,
           NA_character_,                  NA_character_,   'cement',            0.021000,
@@ -1034,16 +1045,17 @@ test_that(
           'gdp_SSP2_highDemDEU',          'DEU',           'steel_secondary',   0.000000,
           'gdp_SSP2_highDemDEU',          'DEU',           'chemicals',         0.000000,
           'gdp_SSP2_highDemDEU',          'DEU',           'otherInd',          0.000000),
-        scenarios = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
-                      'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
-                      'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
-                      'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn'),
-        regions = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
-                    'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
-                    'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
-        structure.columns = 'subsector'),
-
-      expected = tribble(
+        scenario = c('gdp_SDP', 'gdp_SDP_EI', 'gdp_SDP_MC', 'gdp_SDP_RC',
+                     'gdp_SSP1', 'gdp_SSP2', 'gdp_SSP2EU', 'gdp_SSP3',
+                     'gdp_SSP4', 'gdp_SSP5', 'SSP1', 'SSP2', 'SSP2IndiaHigh',
+                     'SSP2IndiaMedium', 'SSP3', 'SSP4', 'SSP5', 'SSP2_lowEn'),
+        region = c('OAS', 'ENC', 'NES', 'MEA', 'SSA', 'LAM', 'REF',
+                   'CAZ', 'EWN', 'ECS', 'CHA', 'ESC', 'ECE', 'FRA',
+                   'DEU', 'UKI', 'NEN', 'IND', 'JPN', 'ESW', 'USA'),
+        subsector = NULL) %>%
+      arrange(.data$scenario, .data$region, .data$subsector)
+    }
+    { expected = tribble(
         ~scenario,           ~region,   ~subsector,          ~alpha,
         'gdp_SDP',           'CAZ',     'cement',            0.021000,
         'gdp_SDP',           'CHA',     'cement',            0.021000,
@@ -2934,6 +2946,8 @@ test_that(
         'gdp_SDP_MC',        'ESW',     'otherInd',          0.029000,
         'gdp_SDP_MC',        'EWN',     'otherInd',          0.029000,
         'gdp_SDP_MC',        'FRA',     'otherInd',          0.029000,
-        'gdp_SDP_MC',        'UKI',     'otherInd',          0.029000)
-    )
+        'gdp_SDP_MC',        'UKI',     'otherInd',          0.029000) %>%
+      arrange(.data$scenario, .data$region, .data$subsector)
+    }
+    expect_equal(object, expected)
   })
