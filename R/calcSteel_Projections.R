@@ -39,7 +39,7 @@
 #'   sum_total_
 #' @importFrom readr write_rds
 #' @importFrom rlang .data
-#' @importFrom stats lm nls sd setNames SSlogis
+#' @importFrom stats lm nls sd SSlogis
 #' @importFrom tibble as_tibble tibble tribble
 #' @importFrom tidyr expand_grid pivot_longer pivot_wider replace_na
 #' @importFrom utils head
