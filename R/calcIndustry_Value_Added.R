@@ -26,8 +26,8 @@
 #' @seealso [`calcOutput()`]
 #'
 #' @importFrom assertr assert not_na verify within_bounds
-#' @importFrom dplyr case_when bind_rows between distinct first last n
-#'   mutate pull right_join select semi_join vars
+#' @importFrom dplyr case_when between bind_cols bind_rows distinct first last
+#'   mutate n pull right_join select semi_join vars
 #' @importFrom ggplot2 aes coord_cartesian expand_limits facet_wrap geom_area
 #'   geom_line geom_path geom_point ggplot ggsave guide_legend labs
 #'   scale_colour_manual scale_fill_discrete scale_fill_manual
@@ -36,12 +36,10 @@
 #'   list_to_data_frame madrat_mule magclass_to_tibble order.levels
 #'   seq_range sum_total_
 #' @importFrom readr write_rds
-#' @importFrom stats lm nls nls.control SSlogis sd
+#' @importFrom stats lm nls nls.control sd setNames SSlogis
 #' @importFrom tibble as_tibble tibble tribble
 #' @importFrom tidyr expand_grid pivot_longer pivot_wider replace_na
 #' @importFrom utils head
-#' @importFrom dplyr bind_cols
-#' @importFrom magclass setNames
 #' @export
 #'
 calcIndustry_Value_Added <- function(subtype = 'physical',
